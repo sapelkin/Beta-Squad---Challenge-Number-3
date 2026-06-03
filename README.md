@@ -1,1 +1,1 @@
-# Beta-Squad---Challenge-Number-3
+# Beta-Squad-Challenge-Number-3
