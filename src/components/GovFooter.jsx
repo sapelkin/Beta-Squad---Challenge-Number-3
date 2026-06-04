@@ -12,9 +12,9 @@ export default function GovFooter() {
           security policy.
         </div>
         <div className="links">
-          <a>Terms of use</a>
-          <a>Privacy</a>
-          <a>About this concept</a>
+          <a href="https://www.wa.gov.au/terms-and-conditions">Terms of use</a>
+          <a href="https://www.wa.gov.au/privacy">Privacy</a>
+          <a href="/">About this concept</a>
           <span className="mark">Concept prototype · Beta Crew · CyberWest 2026</span>
         </div>
       </div>

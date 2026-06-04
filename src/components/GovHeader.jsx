@@ -14,7 +14,9 @@ export default function GovHeader() {
         <Link to="/vendor">Vendors</Link>
         <Link to="/agency">Agencies</Link>
         <Link to="/dgov">DGov</Link>
-        <div className="gv-search">🔍 Search</div>
+        <Link to="/agency" className="gv-search" aria-label="Search assessed vendors">
+          🔍 <span>Search</span>
+        </Link>
       </div>
     </div>
   );

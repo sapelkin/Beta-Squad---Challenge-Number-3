@@ -1,4 +1,4 @@
-// Harmony AI adapter — one feature (legislation -> compliance form scaffold), three providers.
+// Harmony AI adapter — one feature (legislation -> compliance form scaffold), four providers.
 // No paid API key. Selected by AI_PROVIDER env: mock | cli | ollama | lmstudio.
 //   mock     - deterministic canned scaffold. Demo-safe, always works on stage.
 //   cli      - shells out to the local `claude` CLI (Vladimir's subscription, no API key).
@@ -8,11 +8,21 @@
 
 import { spawn } from 'node:child_process';
 
-const CLAUDE_BIN = process.env.CLAUDE_BIN || '/Users/vlad3v/.local/bin/claude';
-const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'qwen2.5:7b';
-const LMSTUDIO_URL = process.env.LMSTUDIO_URL || 'http://localhost:1234/v1';
-const LMSTUDIO_MODEL = process.env.LMSTUDIO_MODEL || 'local-model';
+const DEFAULT_CLAUDE_BIN = '/Users/vlad3v/.local/bin/claude';
+const DEFAULT_OLLAMA_URL = 'http://localhost:11434';
+const DEFAULT_OLLAMA_MODEL = 'qwen2.5:7b';
+const DEFAULT_LMSTUDIO_URL = 'http://localhost:1234/v1';
+const DEFAULT_LMSTUDIO_MODEL = 'qwen/qwen3.5-9b';
+const DEFAULT_AI_TIMEOUT_MS = 8000;
+
+function env(name, fallback) {
+  return process.env[name] || fallback;
+}
+
+function aiTimeoutMs() {
+  const ms = Number(process.env.AI_TIMEOUT_MS);
+  return Number.isFinite(ms) && ms > 0 ? ms : DEFAULT_AI_TIMEOUT_MS;
+}
 
 const SYS = `You convert Western Australian Government cyber security policy text into a vendor compliance assessment form.
 Return ONLY a JSON array (no prose, no markdown fences) of 4-7 objects with exactly these keys:
@@ -57,7 +67,7 @@ export function mockFields(legislation = '') {
 function runCli(legislation) {
   return new Promise((resolve, reject) => {
     const prompt = `${SYS}\n\nPolicy text:\n"""${legislation}"""`;
-    const child = spawn(CLAUDE_BIN, ['-p', prompt], { timeout: 60000 });
+    const child = spawn(env('CLAUDE_BIN', DEFAULT_CLAUDE_BIN), ['-p', prompt], { timeout: 60000 });
     let out = '', err = '';
     child.stdout.on('data', (d) => (out += d));
     child.stderr.on('data', (d) => (err += d));
@@ -70,20 +80,35 @@ function runCli(legislation) {
   });
 }
 
+async function fetchJsonWithTimeout(url, options, label) {
+  const timeoutMs = aiTimeoutMs();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const r = await fetch(url, { ...options, signal: controller.signal });
+    if (!r.ok) throw new Error(`${label} HTTP ${r.status}`);
+    return await r.json();
+  } catch (e) {
+    if (e?.name === 'AbortError') throw new Error(`${label} timed out after ${timeoutMs}ms`);
+    throw e;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function runOllama(legislation) {
+  const model = env('OLLAMA_MODEL', DEFAULT_OLLAMA_MODEL);
   const body = {
-    model: OLLAMA_MODEL,
+    model,
     prompt: `${SYS}\n\nPolicy text:\n"""${legislation}"""\n\nJSON:`,
     stream: false,
     options: { temperature: 0.2 },
   };
-  const r = await fetch(`${OLLAMA_URL}/api/generate`, {
+  const data = await fetchJsonWithTimeout(`${env('OLLAMA_URL', DEFAULT_OLLAMA_URL)}/api/generate`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(body),
-  });
-  if (!r.ok) throw new Error(`ollama HTTP ${r.status}`);
-  const data = await r.json();
+  }, 'ollama');
   const fields = extractJsonArray(data.response || '');
   if (!fields) throw new Error('ollama returned no parseable JSON');
   return fields;
@@ -91,8 +116,9 @@ async function runOllama(legislation) {
 
 async function runLmStudio(legislation) {
   // LM Studio exposes an OpenAI-compatible server (Developer tab / `lms server start`).
+  const model = env('LMSTUDIO_MODEL', DEFAULT_LMSTUDIO_MODEL);
   const body = {
-    model: LMSTUDIO_MODEL, // LM Studio serves whatever model is loaded; any id works.
+    model,
     temperature: 0.2,
     stream: false,
     messages: [
@@ -100,13 +126,11 @@ async function runLmStudio(legislation) {
       { role: 'user', content: `Policy text:\n"""${legislation}"""\n\nJSON:` },
     ],
   };
-  const r = await fetch(`${LMSTUDIO_URL}/chat/completions`, {
+  const data = await fetchJsonWithTimeout(`${env('LMSTUDIO_URL', DEFAULT_LMSTUDIO_URL)}/chat/completions`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(body),
-  });
-  if (!r.ok) throw new Error(`lmstudio HTTP ${r.status}`);
-  const data = await r.json();
+  }, 'lmstudio');
   const fields = extractJsonArray(data?.choices?.[0]?.message?.content || '');
   if (!fields) throw new Error('lmstudio returned no parseable JSON');
   return fields;
@@ -115,7 +139,7 @@ async function runLmStudio(legislation) {
 export async function generateScaffold(legislation) {
   const provider = (process.env.AI_PROVIDER || 'mock').toLowerCase();
   if (provider === 'cli') return { provider: 'cli', fields: await runCli(legislation) };
-  if (provider === 'ollama') return { provider: `ollama:${OLLAMA_MODEL}`, fields: await runOllama(legislation) };
-  if (provider === 'lmstudio') return { provider: `lmstudio:${LMSTUDIO_MODEL}`, fields: await runLmStudio(legislation) };
+  if (provider === 'ollama') return { provider: `ollama:${env('OLLAMA_MODEL', DEFAULT_OLLAMA_MODEL)}`, fields: await runOllama(legislation) };
+  if (provider === 'lmstudio') return { provider: `lmstudio:${env('LMSTUDIO_MODEL', DEFAULT_LMSTUDIO_MODEL)}`, fields: await runLmStudio(legislation) };
   return { provider: 'mock', fields: mockFields(legislation) };
 }

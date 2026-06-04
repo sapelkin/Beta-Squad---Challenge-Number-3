@@ -22,6 +22,8 @@ duplication in procurement, Harmony removes it in cyber assurance — one layer 
 ```bash
 npm install
 npm run dev          # http://localhost:5174
+npm run build
+npm start            # production server with /api/ai/scaffold on http://localhost:4173
 ```
 
 ## The three stakeholders (four surfaces)
@@ -35,16 +37,18 @@ npm run dev          # http://localhost:5174
 
 ## The one real AI feature
 
-Legislation text → compliance form scaffold, behind a 3-mode adapter (`server/ai.mjs`,
-served at `POST /api/ai/scaffold`). Set `AI_PROVIDER` in `.env` (see `.env.example`). **No paid API key.**
+Legislation text → compliance form scaffold, behind a 4-mode adapter (`server/ai.mjs`,
+served at `POST /api/ai/scaffold` in dev and preview). Set `AI_PROVIDER` in `.env`
+(see `.env.example`). **No paid API key.**
 
 | `AI_PROVIDER` | How | Use |
 |---|---|---|
 | `mock` (default) | deterministic canned scaffold | demo-safe, never breaks on stage |
 | `cli` | shells out to the local `claude` CLI | runs through a Claude subscription, **no API key** — local testing |
 | `ollama` | local model on `localhost:11434` | **on-prem, data stays in Australia** — the data-sovereignty pitch |
+| `lmstudio` | local model via LM Studio's OpenAI-compatible server on `localhost:1234` | local testing with `qwen/qwen3.5-9b` by default |
 
-Any provider error degrades gracefully to `mock`, so the demo never breaks.
+Any provider error or timeout degrades gracefully to `mock`, so the demo never breaks.
 
 ## Demo spine (2 acts)
 

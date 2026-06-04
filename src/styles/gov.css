@@ -29,7 +29,8 @@ button{font-family:inherit;cursor:pointer;}
 .gv-util{margin-left:auto;display:flex;align-items:center;gap:20px;font-size:12.5px;}
 .gv-util a{color:#fff;text-decoration:none;}
 .gv-util a:hover{text-decoration:underline;}
-.gv-search{background:#fff;border-radius:3px;display:flex;align-items:center;padding:6px 9px;color:#777;font-size:12px;width:170px;gap:6px;}
+.gv-util .gv-search{background:#fff;border-radius:3px;display:flex;align-items:center;padding:6px 9px;color:#777;font-size:12px;width:170px;gap:6px;text-decoration:none;}
+.gv-util .gv-search:hover{text-decoration:none;color:var(--ink);}
 
 .gv-nav{background:#fff;border-bottom:1px solid var(--divider);display:flex;gap:30px;padding:14px 26px;font-size:13.5px;color:var(--ink);}
 .gv-nav a{cursor:pointer;padding-bottom:2px;text-decoration:none;color:var(--ink);}
