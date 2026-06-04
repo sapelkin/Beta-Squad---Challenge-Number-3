@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { generateScaffold, mockFields } from './server/ai.mjs';
@@ -37,7 +37,15 @@ function harmonyAiSidecar() {
   };
 }
 
-export default defineConfig({
-  plugins: [react(), tailwindcss(), harmonyAiSidecar()],
-  server: { port: 5174, host: true },
+export default defineConfig(({ mode }) => {
+  // Load .env into process.env so the server-side AI sidecar (server/ai.mjs) can read
+  // AI_PROVIDER, LMSTUDIO_*, OLLAMA_*, CLAUDE_BIN. Shell-exported vars keep priority.
+  const env = loadEnv(mode, process.cwd(), '');
+  for (const k of ['AI_PROVIDER', 'CLAUDE_BIN', 'OLLAMA_URL', 'OLLAMA_MODEL', 'LMSTUDIO_URL', 'LMSTUDIO_MODEL']) {
+    if (env[k] && process.env[k] === undefined) process.env[k] = env[k];
+  }
+  return {
+    plugins: [react(), tailwindcss(), harmonyAiSidecar()],
+    server: { port: 5174, host: true },
+  };
 });
