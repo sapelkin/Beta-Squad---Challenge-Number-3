@@ -1,8 +1,9 @@
 // Harmony AI adapter — one feature (legislation -> compliance form scaffold), three providers.
-// No paid API key. Selected by AI_PROVIDER env: mock | cli | ollama.
-//   mock   - deterministic canned scaffold. Demo-safe, always works on stage.
-//   cli    - shells out to the local `claude` CLI (Vladimir's subscription, no API key).
-//   ollama - local model on http://localhost:11434 (on-prem, the data-sovereignty pitch).
+// No paid API key. Selected by AI_PROVIDER env: mock | cli | ollama | lmstudio.
+//   mock     - deterministic canned scaffold. Demo-safe, always works on stage.
+//   cli      - shells out to the local `claude` CLI (Vladimir's subscription, no API key).
+//   ollama   - local model on http://localhost:11434 (on-prem, the data-sovereignty pitch).
+//   lmstudio - local model via LM Studio's OpenAI-compatible API on http://localhost:1234/v1.
 // Any failure degrades gracefully to mock so the demo never breaks.
 
 import { spawn } from 'node:child_process';
@@ -10,6 +11,8 @@ import { spawn } from 'node:child_process';
 const CLAUDE_BIN = process.env.CLAUDE_BIN || '/Users/vlad3v/.local/bin/claude';
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'qwen2.5:7b';
+const LMSTUDIO_URL = process.env.LMSTUDIO_URL || 'http://localhost:1234/v1';
+const LMSTUDIO_MODEL = process.env.LMSTUDIO_MODEL || 'local-model';
 
 const SYS = `You convert Western Australian Government cyber security policy text into a vendor compliance assessment form.
 Return ONLY a JSON array (no prose, no markdown fences) of 4-7 objects with exactly these keys:
@@ -86,9 +89,33 @@ async function runOllama(legislation) {
   return fields;
 }
 
+async function runLmStudio(legislation) {
+  // LM Studio exposes an OpenAI-compatible server (Developer tab / `lms server start`).
+  const body = {
+    model: LMSTUDIO_MODEL, // LM Studio serves whatever model is loaded; any id works.
+    temperature: 0.2,
+    stream: false,
+    messages: [
+      { role: 'system', content: SYS },
+      { role: 'user', content: `Policy text:\n"""${legislation}"""\n\nJSON:` },
+    ],
+  };
+  const r = await fetch(`${LMSTUDIO_URL}/chat/completions`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!r.ok) throw new Error(`lmstudio HTTP ${r.status}`);
+  const data = await r.json();
+  const fields = extractJsonArray(data?.choices?.[0]?.message?.content || '');
+  if (!fields) throw new Error('lmstudio returned no parseable JSON');
+  return fields;
+}
+
 export async function generateScaffold(legislation) {
   const provider = (process.env.AI_PROVIDER || 'mock').toLowerCase();
   if (provider === 'cli') return { provider: 'cli', fields: await runCli(legislation) };
   if (provider === 'ollama') return { provider: `ollama:${OLLAMA_MODEL}`, fields: await runOllama(legislation) };
+  if (provider === 'lmstudio') return { provider: `lmstudio:${LMSTUDIO_MODEL}`, fields: await runLmStudio(legislation) };
   return { provider: 'mock', fields: mockFields(legislation) };
 }

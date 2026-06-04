@@ -6,8 +6,16 @@ CyberWest 2026 — Challenge #3 (Beta Crew). Concept prototype.
 > *How might the WA Office of Digital Government help agencies assess the cyber risk of suppliers
 > before entering or renewing contracts?*
 
-A vendor proves its cyber posture **once**, against standardised DGov templates. Every WA agency
-**reuses** that verified result. One gate replaces 140+ duplicate assessments.
+A vendor's cyber posture is **verified and recorded once**, against a standardised DGov baseline
+template. Every WA agency **reuses** that assurance record as an input to its own risk-based
+decision. One gate replaces 140+ duplicate assessments.
+
+**What Harmony is not.** It does not create a new certification, and it is not an approval authority.
+DGov stays consultative — it publishes the baseline templates and policy mappings, verifies and
+records what a vendor already holds (ISO / SOC / IRAP status, hosting, data residency, control
+answers), and adds advisory input. Each agency keeps its own assessment and procurement decision;
+there is no universal pass/fail and no red/amber/green pool. *Like a Common Use Arrangement removes
+duplication in procurement, Harmony removes it in cyber assurance — one layer down.*
 
 ## Run it
 
@@ -21,9 +29,9 @@ npm run dev          # http://localhost:5174
 | Route | Surface | What it shows |
 |---|---|---|
 | `/` | Public landing | the problem, the 3-stakeholder value stream, the headline stats |
-| `/vendor` | Vendor portal | **Regular** (manual) and **Digital / MCP** (the hero: terminal → live certificate) gates, tiered by contract value + data sensitivity |
-| `/agency` | Agency console | AI **template-from-policy** + search the certified **green pool** and reuse in one click |
-| `/dgov` | DGov admin | assurance dashboard + **human-in-the-loop** approval queue (AI suggests, an officer decides) |
+| `/vendor` | Vendor portal | **Regular** (manual) and **Digital / MCP** (the hero: terminal → live assurance record) gates, tiered by contract value + data sensitivity |
+| `/agency` | Agency console | AI **template-from-policy** + search the shared-assurance records (with provenance: who assessed, against which policy, classification, as-at date) and reuse as an input in one click |
+| `/dgov` | DGov admin | assurance dashboard + **human-in-the-loop** advisory review (AI summarises, an officer verifies & publishes, the agency decides) |
 
 ## The one real AI feature
 
@@ -40,8 +48,8 @@ Any provider error degrades gracefully to `mock`, so the demo never breaks.
 
 ## Demo spine (2 acts)
 
-1. **Act 1** — a solo SaaS vendor self-certifies once via the MCP path → a DGov officer approves → green certificate.
-2. **Act 2** — a *different* agency finds them in the green pool and reuses the assessment instantly.
+1. **Act 1** — a solo SaaS vendor gets assessed once via the MCP path → a DGov officer verifies & publishes the assurance record (human-in-the-loop).
+2. **Act 2** — a *different* agency finds that record (with full provenance), reuses it as an input, and makes its own risk-based call — no new questionnaire.
 
 ## Scope
 

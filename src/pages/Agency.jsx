@@ -30,7 +30,7 @@ export default function Agency() {
   return (
     <div>
       <h2 className="gv">Agency console</h2>
-      <p className="lede">Build assessment templates from policy, then reuse the certified pool instead of re-assessing vendors yourself.</p>
+      <p className="lede">Start from the DGov baseline template, then reuse existing assurance records as an input — instead of re-assessing every vendor yourself. You keep the risk and procurement decision.</p>
 
       <div className="split">
         {/* LEFT: AI template-from-policy */}
@@ -62,16 +62,15 @@ export default function Agency() {
           {note && <p className="notice" style={{ marginTop: 10 }}>{note}</p>}
         </div>
 
-        {/* RIGHT: green pool */}
+        {/* RIGHT: shared assurance records */}
         <div className="panel">
-          <h4>Find a certified vendor</h4>
-          <p className="sd">The green pool — assessed once by Harmony, reusable by your agency now.</p>
+          <h4>Find an assessed vendor</h4>
+          <p className="sd">Shared assurance — assessed once, with full provenance, reusable as an input to your own risk decision.</p>
           <table className="pool">
             <thead>
               <tr>
-                <th>Vendor</th>
-                <th>Service</th>
-                <th>Status</th>
+                <th>Vendor &amp; assessment provenance</th>
+                <th>Findings</th>
               </tr>
             </thead>
             <tbody>
@@ -80,9 +79,13 @@ export default function Agency() {
                 return (
                   <tr key={v.id} className={v.hero ? 'hl' : ''}>
                     <td>
-                      <b>{v.name}</b>
+                      <b>{v.name}</b> · {v.service}
+                      <div style={{ fontSize: 11, color: '#888', marginTop: 2, lineHeight: 1.5 }}>
+                        Assessed by {v.assessedBy} · {v.policy}
+                        <br />
+                        Classification: {v.classification} · as at {v.asOf}
+                      </div>
                     </td>
-                    <td>{v.service}</td>
                     <td>
                       <span className={'badge ' + b.cls}>{b.label}</span>
                     </td>
@@ -91,12 +94,16 @@ export default function Agency() {
               })}
             </tbody>
           </table>
+          <p className="sd" style={{ marginTop: 10 }}>
+            Findings inform <b>your</b> risk-based decision. Harmony records assurance — it does not approve or reject vendors,
+            and a gap for one agency need not block another.
+          </p>
           {!reuse ? (
-            <button className="btn" style={{ marginTop: 14 }} onClick={() => setReuse(true)}>
-              Reuse Sarah's assessment for this contract →
+            <button className="btn" style={{ marginTop: 6 }} onClick={() => setReuse(true)}>
+              Reuse Sarah's assessment as an input →
             </button>
           ) : (
-            <p className="aibadge" style={{ marginTop: 14 }}>✓ Reused — no new questionnaire. The harmonisation payoff in one click.</p>
+            <p className="aibadge" style={{ marginTop: 6 }}>✓ Reused as an input — no new questionnaire. You still make the risk-based call.</p>
           )}
         </div>
       </div>
