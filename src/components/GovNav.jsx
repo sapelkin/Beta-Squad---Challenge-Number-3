@@ -2,8 +2,8 @@ import { NavLink } from 'react-router-dom';
 
 const LINKS = [
   { to: '/', label: 'How it works', end: true },
-  { to: '/agency', label: 'Find a certified vendor' },
-  { to: '/vendor', label: 'Become certified' },
+  { to: '/agency', label: 'Vendor assurance register' },
+  { to: '/vendor', label: 'Get a record' },
   { to: '/dgov', label: 'Digital Government' },
 ];
 

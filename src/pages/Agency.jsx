@@ -1,8 +1,24 @@
 import { useState } from 'react';
 import { generateScaffold } from '../lib/ai.js';
-import { vendors, STATUS_BADGE, sampleLegislation } from '../data/vendors.js';
+import { vendors, sampleLegislation } from '../data/vendors.js';
 
 const TYPE_LABEL = { checkbox: 'checkbox', text: 'text', select: 'select', upload: 'upload', yesno: 'yes/no' };
+
+function VerifiedChips({ v }) {
+  const chips = [];
+  if (v.verified.iso27001 === 'verified') chips.push('ISO 27001');
+  if (v.verified.soc2 === 'verified') chips.push('SOC 2');
+  if (v.verified.irap === 'current') chips.push('IRAP');
+  if (v.verified.mfa === 'enforced') chips.push('MFA');
+  chips.push(v.e8 === 'ML1 met' ? 'E8 ML1' : v.e8 === 'Partial' ? 'E8 partial' : 'E8 not met');
+  return (
+    <div className="vchips">
+      {chips.map((c) => (
+        <span className="vchip" key={c}>{c}</span>
+      ))}
+    </div>
+  );
+}
 
 export default function Agency() {
   const [legislation, setLegislation] = useState(sampleLegislation);
@@ -10,7 +26,7 @@ export default function Agency() {
   const [provider, setProvider] = useState('');
   const [loading, setLoading] = useState(false);
   const [note, setNote] = useState('');
-  const [reuse, setReuse] = useState(false);
+  const [selected, setSelected] = useState(vendors[0]);
 
   async function onGenerate() {
     setLoading(true);
@@ -30,17 +46,17 @@ export default function Agency() {
   return (
     <div>
       <h2 className="gv">Agency console</h2>
-      <p className="lede">Build assessment templates from policy, then reuse the certified pool instead of re-assessing vendors yourself.</p>
+      <p className="lede">Tailor the baseline template from policy, then reuse assurance other agencies have already done. You keep your own risk-based decision.</p>
 
       <div className="split">
-        {/* LEFT: AI template-from-policy */}
+        {/* LEFT: AI baseline-from-policy */}
         <div className="panel">
-          <h4>Create a template from policy</h4>
-          <p className="sd">Paste the legislation or policy clause. The AI drafts the form scaffold; you refine and publish.</p>
+          <h4>Tailor your baseline from policy</h4>
+          <p className="sd">Paste a policy clause specific to your agency. The AI drafts form fields you add on top of the DGov baseline.</p>
           <textarea className="leg" value={legislation} onChange={(e) => setLegislation(e.target.value)} />
           <div style={{ marginTop: 12 }}>
             <button className="btn" onClick={onGenerate} disabled={loading}>
-              {loading ? 'Generating…' : '✦ Generate scaffold'}
+              {loading ? 'Generating…' : '✦ Generate fields'}
             </button>
             {provider && (
               <div className="aibadge">
@@ -62,41 +78,48 @@ export default function Agency() {
           {note && <p className="notice" style={{ marginTop: 10 }}>{note}</p>}
         </div>
 
-        {/* RIGHT: green pool */}
+        {/* RIGHT: assurance register + prior assessments */}
         <div className="panel">
-          <h4>Find a certified vendor</h4>
-          <p className="sd">The green pool — assessed once by Harmony, reusable by your agency now.</p>
+          <h4>Vendor assurance register</h4>
+          <p className="sd">Assessed once, reusable by your agency. Select a vendor to see who assessed them and what was found. No universal pass/fail.</p>
           <table className="pool">
             <thead>
               <tr>
                 <th>Vendor</th>
-                <th>Service</th>
-                <th>Status</th>
+                <th>Verified</th>
+                <th>Assessed by</th>
               </tr>
             </thead>
             <tbody>
-              {vendors.map((v) => {
-                const b = STATUS_BADGE[v.status];
-                return (
-                  <tr key={v.id} className={v.hero ? 'hl' : ''}>
-                    <td>
-                      <b>{v.name}</b>
-                    </td>
-                    <td>{v.service}</td>
-                    <td>
-                      <span className={'badge ' + b.cls}>{b.label}</span>
-                    </td>
-                  </tr>
-                );
-              })}
+              {vendors.map((v) => (
+                <tr key={v.id} className={selected?.id === v.id ? 'hl' : ''} onClick={() => setSelected(v)} style={{ cursor: 'pointer' }}>
+                  <td><b>{v.name}</b><div className="td-sub">{v.service}</div></td>
+                  <td><VerifiedChips v={v} /></td>
+                  <td>{v.assessments.length} {v.assessments.length === 1 ? 'agency' : 'agencies'}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
-          {!reuse ? (
-            <button className="btn" style={{ marginTop: 14 }} onClick={() => setReuse(true)}>
-              Reuse Sarah's assessment for this contract →
-            </button>
-          ) : (
-            <p className="aibadge" style={{ marginTop: 14 }}>✓ Reused — no new questionnaire. The harmonisation payoff in one click.</p>
+
+          {selected && (
+            <div className="vdetail">
+              <div className="vdetail-h">{selected.name} — prior assessments</div>
+              {selected.assessments.map((a, i) => (
+                <div className="assess" key={i}>
+                  <div className="assess-top">
+                    <b>{a.agency}</b>
+                    <span className="assess-date">{a.date}</span>
+                  </div>
+                  <div className="assess-fw">Assessed against: {a.framework}</div>
+                  <div className="assess-risk"><span className="k">Risks/gaps:</span> {a.risks}</div>
+                  <div className="assess-dec"><span className="k">Their decision:</span> {a.decision}</div>
+                </div>
+              ))}
+              <p className="sd" style={{ marginTop: 10 }}>
+                Reuse this assurance as an input. Apply your own data classification and risk appetite, then make your decision.
+              </p>
+              <button className="btn">Reuse this assurance for my assessment →</button>
+            </div>
           )}
         </div>
       </div>
