@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { vendors } from '../data/vendors.js';
 
 const VERDICT = {
-  'pre-approve': { color: 'var(--green)', label: 'Pre-approve' },
-  'approve-with-conditions': { color: 'var(--amber)', label: 'Approve with conditions' },
-  decline: { color: 'var(--red)', label: 'Decline' },
+  'pre-approve': { color: 'var(--green)', label: 'Strong posture' },
+  'approve-with-conditions': { color: 'var(--amber)', label: 'Conditions noted' },
+  decline: { color: 'var(--red)', label: 'Significant gaps' },
 };
 
 export default function DGov() {
@@ -14,20 +14,20 @@ export default function DGov() {
   return (
     <div>
       <h2 className="gv">Digital Government — assurance dashboard</h2>
-      <p className="lede">The overarching admin: standardise templates, watch the estate, and approve vendors with a human in the loop.</p>
+      <p className="lede">DGov's consultative role: publish the baseline templates and policy mappings, verify what vendors hold, and add advisory input. Agencies keep the assessment and procurement decision.</p>
 
       <div className="tiles">
         <div className="tile">
           <b>312</b>
-          <span>Certified vendors</span>
+          <span>Vendors with an assurance record</span>
         </div>
         <div className="tile alert">
           <b>7</b>
-          <span>Certificates expiring ≤30d</span>
+          <span>Records to refresh ≤30d</span>
         </div>
         <div className="tile alert">
           <b>3</b>
-          <span>High-risk — access blocked</span>
+          <span>Significant gaps flagged for agencies</span>
         </div>
         <div className="tile">
           <b>141</b>
@@ -35,7 +35,7 @@ export default function DGov() {
         </div>
       </div>
 
-      <h4 style={{ fontSize: 15, color: 'var(--ink)', margin: '0 0 10px' }}>Approval queue · human-in-the-loop</h4>
+      <h4 style={{ fontSize: 15, color: 'var(--ink)', margin: '0 0 10px' }}>Advisory review · human-in-the-loop</h4>
       <div className="queue">
         {queue.map((v) => {
           const verdict = VERDICT[v.aiVerdict];
@@ -45,21 +45,21 @@ export default function DGov() {
               <div>
                 <div className="who">{v.name}</div>
                 <div className="ai">
-                  AI suggestion: <b style={{ color: verdict.color }}>{verdict.label}</b> — {v.aiReason}{' '}
-                  <span style={{ color: '#999' }}>AI suggests, never approves.</span>
+                  AI summary: <b style={{ color: verdict.color }}>{verdict.label}</b> — {v.aiReason}{' '}
+                  <span style={{ color: '#999' }}>AI summarises; an officer verifies; the agency decides.</span>
                 </div>
               </div>
               <div className="right">
                 {isApproved ? (
-                  <span className="miniseal" title="Certificate issued">✓</span>
+                  <span className="miniseal" title="Assurance record published">✓</span>
                 ) : v.aiVerdict === 'pre-approve' ? (
                   <button className="approve" onClick={() => setApproved((a) => ({ ...a, [v.id]: true }))}>
-                    Approve &amp; issue certificate
+                    Verify &amp; publish record
                   </button>
                 ) : v.aiVerdict === 'approve-with-conditions' ? (
-                  <button className="approve" style={{ background: 'var(--amber)' }}>Review</button>
+                  <button className="approve" style={{ background: 'var(--amber)' }}>Note conditions</button>
                 ) : (
-                  <button className="approve" style={{ background: 'var(--red)' }}>Decline</button>
+                  <button className="approve" style={{ background: 'var(--red)' }}>Record gaps</button>
                 )}
               </div>
             </div>

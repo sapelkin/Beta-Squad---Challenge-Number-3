@@ -37,10 +37,11 @@ const TERMINAL_LINES = (high) => [
   { c: 'dim', t: "# Sarah's SaaS — one-time connect" },
   { c: 'cmd', t: '$ npx harmony-mcp connect --key HRM-7F3A-9K2D' },
   { c: 'ok', t: '✓ identity verified  (vendor #4471, verified at registration)' },
-  { c: 'ok', t: '✓ scanning repository  github.com/sarah-saas/app' },
+  { c: 'ok', t: '✓ reading attestations + CI/config signals  github.com/sarah-saas/app' },
   { c: 'ok', t: `✓ tailored questionnaire loaded  ${high ? 'software · Essential Eight ML1 + IRAP' : 'low-risk · basic'}` },
-  { c: 'ok', t: '✓ MFA enforced · backups present · patch cadence ≤14d' },
-  { c: 'ac', t: '→ posture compiled — awaiting Digital Government approval…' },
+  { c: 'ok', t: '✓ auto-checked: patch cadence ≤14d · MFA & backups attested' },
+  { c: 'dim', t: '# org controls (E8 maturity, IRAP, ISO) remain human-verified from evidence' },
+  { c: 'ac', t: '→ posture compiled — awaiting Digital Government advisory review…' },
 ];
 
 export default function Vendor() {
@@ -86,7 +87,7 @@ export default function Vendor() {
   if (!mode) {
     return (
       <div>
-        <h2 className="gv">Become a certified vendor</h2>
+        <h2 className="gv">Get assessed once</h2>
         <p className="lede">Choose how you want to work with government. The platform shows you the minimum you need — nothing more.</p>
         <TierControls tier={tier} setTier={setTier} sens={sens} setSens={setSens} />
         <div className="gate">
@@ -97,7 +98,7 @@ export default function Vendor() {
             <ul>
               <li>Best for goods &amp; services</li>
               <li>Paper documents accepted</li>
-              <li>Human-verified certificate</li>
+              <li>Human-verified assurance record</li>
             </ul>
             <button className="btn ghost" onClick={() => setMode('regular')}>
               Start regular
@@ -106,11 +107,11 @@ export default function Vendor() {
           <div className="gatecard sel">
             <div className="tag">Digital · MCP</div>
             <h3>Automated collaboration</h3>
-            <p>For software, SaaS and cloud. Connect your environment once; Harmony verifies it continuously.</p>
+            <p>For software, SaaS and cloud. Connect your environment once; Harmony re-checks the signals it can read continuously.</p>
             <ul>
               <li>Best for digital products</li>
               <li>Auto-questionnaire from your repo</li>
-              <li>Live, self-revoking certificate</li>
+              <li>Live record · auto-lapses if the connection drops</li>
             </ul>
             <button className="btn" onClick={() => { setMode('digital'); setStep(0); }}>
               Start digital →
@@ -119,7 +120,7 @@ export default function Vendor() {
         </div>
         <p className="lede" style={{ marginTop: 24, fontSize: 13 }}>
           {tier === 'solo' ? (
-            <><b>Solo tier (&lt;$1M):</b> the MCP path is your fast lane — connect, get certified, start selling.</>
+            <><b>Solo tier (&lt;$1M):</b> the MCP path is your fast lane — connect, get assessed, start selling.</>
           ) : (
             <><b>Substantial tier (&gt;$1M):</b> full evidence pack required; an assigned officer reviews before approval.</>
           )}
@@ -143,7 +144,7 @@ export default function Vendor() {
             </div>
           ))}
         </div>
-        <p className="notice" style={{ marginTop: 14 }}>Then a Digital Government officer verifies and issues your certificate (human-in-the-loop).</p>
+        <p className="notice" style={{ marginTop: 14 }}>Then a Digital Government officer verifies and publishes your assurance record (human-in-the-loop).</p>
         <div style={{ marginTop: 16 }}>
           <button className="btn ghost" onClick={() => setMode(null)}>← Back to gates</button>
         </div>
@@ -183,13 +184,13 @@ export default function Vendor() {
           {docs.map((d) => (
             <div className="f" key={d}>
               ✓ {d}
-              <span className="ty">verified</span>
+              <span className="ty">on record</span>
             </div>
           ))}
         </div>
         <div style={{ marginTop: 16, display: 'flex', gap: 10 }}>
           <button className="btn" disabled={!done} onClick={() => setStep(1)}>
-            {done ? 'View issued certificate →' : 'Compiling posture…'}
+            {done ? 'View assurance record →' : 'Compiling posture…'}
           </button>
           <button className="btn ghost" onClick={() => setMode(null)}>← Back</button>
         </div>
@@ -201,9 +202,9 @@ export default function Vendor() {
   return (
     <div>
       <h2 className="gv">
-        You're in the <em>green pool.</em>
+        Your <em>assurance record</em> is live.
       </h2>
-      <p className="lede">A Digital Government officer approved your posture. Your certificate is live and visible to every WA agency — no re-assessment.</p>
+      <p className="lede">A Digital Government officer verified your posture and published your assurance record — visible to every WA agency as an input to their own risk-based decision. No re-assessment.</p>
       <div className="progress">
         <div className="done" />
         <div className="done" />
@@ -211,7 +212,7 @@ export default function Vendor() {
       </div>
       <div className="cert">
         <div className="seal">✓</div>
-        <div className="lbl">Harmony Certified Vendor</div>
+        <div className="lbl">Harmony Assurance Record</div>
         <h3>Sarah's SaaS Pty Ltd</h3>
         <div className="meta">
           <b>Assurance:</b> Essential Eight ML1 · IRAP-ready
@@ -220,9 +221,11 @@ export default function Vendor() {
           <br />
           <b>Verified by:</b> Office of Digital Government (human-in-the-loop)
           <br />
-          <b>Valid:</b> while MCP connection stays live · auto-revokes on lapse
+          <b>Status:</b> live · re-checked on change · auto-lapses if connection drops
           <br />
-          <b>Certificate ID:</b> HRM-CERT-4471-2026
+          <b>Record ID:</b> HRM-AR-4471-2026
+          <br />
+          <b>Note:</b> records assurance for reuse — agencies make their own risk-based call.
         </div>
       </div>
       <div style={{ marginTop: 16 }}>
