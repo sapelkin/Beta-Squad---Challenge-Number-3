@@ -146,8 +146,73 @@ tr.hl td{background:#fff8f5;box-shadow:inset 3px 0 0 var(--accent);}
 
 .notice{font-size:11px;color:#8a6d3b;background:#fcf8e3;border:1px solid #faebcc;border-radius:4px;padding:6px 10px;display:inline-block;}
 
+.ctl-l{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:6px;}
+
+/* CUA distinction callout */
+.cua{border-left:3px solid var(--accent);background:var(--surface-alt);padding:14px 16px;margin:26px 0 4px;font-size:13px;color:var(--body);line-height:1.55;}
+.cua b{color:var(--ink);}
+.cua em{font-style:normal;color:var(--accent);font-weight:700;}
+
+/* ---- questionnaire ---- */
+.qn{border:1px solid var(--divider);border-radius:6px;overflow:hidden;margin-top:6px;}
+.qn-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;background:var(--charcoal);color:#fff;padding:16px 18px;flex-wrap:wrap;}
+.qn-title{font-size:16px;font-weight:800;}
+.qn-sub{font-size:11.5px;color:#c9c9c9;margin-top:2px;}
+.qn-prov{text-align:right;max-width:55%;}
+.qn-prov-l{display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:.8px;color:#a9a9a9;margin-bottom:5px;}
+.qn-sec{border-top:1px solid var(--divider);}
+.qn-sec-h{background:var(--surface-alt);padding:10px 16px;font-size:13px;font-weight:800;color:var(--ink);}
+.qn-sec-i{font-size:11.5px;color:var(--body);padding:8px 16px 2px;margin:0;line-height:1.5;}
+.qrow2{display:flex;align-items:flex-start;gap:14px;padding:11px 16px;border-top:1px solid #f0f0f0;}
+.qrow2-main{flex:1;}
+.qrow2-label{font-size:13px;color:var(--ink);line-height:1.4;}
+.req-dot{color:var(--accent);font-weight:800;}
+.qrow2-meta{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap;}
+.qrow2-src{font-size:10.5px;color:#888;}
+.qrow2-auto{font-size:10px;color:var(--green);background:#eef6ef;border:1px solid #cfe6d2;padding:1px 7px;border-radius:20px;}
+.qrow2-ans{min-width:120px;text-align:right;}
+.q-ctl{font-size:11.5px;color:#aaa;border:1px dashed var(--divider);border-radius:4px;padding:4px 9px;white-space:nowrap;}
+.q-ans{font-size:12px;color:var(--ink);font-weight:600;}
+.q-ans.ok{color:var(--green);}
+.qn-foot{padding:12px 16px;font-size:11px;color:var(--body);background:#fafafa;border-top:1px solid var(--divider);line-height:1.5;}
+
+/* policy provenance chips */
+.pchip{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:#eee;color:#444;margin:0 4px 4px 0;}
+.pchip.sm{font-size:9.5px;padding:1px 7px;margin:0;}
+.qn-prov .pchip{background:#454545;color:#fff;font-weight:600;}
+.pchip.fw-wa{background:#e7f0fb;color:#1a4d8f;}
+.pchip.fw-e8{background:#fdeee7;color:#b5471f;}
+.pchip.fw-irap{background:#efeafc;color:#5b3fae;}
+.pchip.fw-ism{background:#e9f3ec;color:#1e7a3a;}
+.pchip.fw-inc{background:#fdf3e0;color:#9a6b12;}
+
+/* ---- agency register detail ---- */
+.td-sub{font-size:11px;color:#999;margin-top:2px;}
+.vchips{display:flex;flex-wrap:wrap;gap:4px;}
+.vchip{font-size:10px;font-weight:700;background:#eef2f5;color:#3a5566;border:1px solid #dde6ec;padding:1px 7px;border-radius:20px;}
+.vdetail{border:1px solid var(--divider);border-top:3px solid var(--accent);border-radius:0 0 4px 4px;padding:14px 16px;margin-top:14px;background:#fff;}
+.vdetail-h{font-size:13px;font-weight:800;color:var(--ink);margin-bottom:10px;}
+.assess{border:1px solid var(--divider);border-radius:4px;padding:10px 12px;margin-bottom:8px;background:#fafafa;}
+.assess-top{display:flex;justify-content:space-between;align-items:baseline;}
+.assess-top b{color:var(--ink);font-size:12.5px;}
+.assess-date{font-size:10.5px;color:#999;}
+.assess-fw{font-size:11.5px;color:var(--body);margin-top:3px;}
+.assess-risk,.assess-dec{font-size:11.5px;color:var(--body);margin-top:3px;}
+.assess .k{color:#888;font-weight:700;}
+
+/* ---- dgov verify queue ---- */
+.qrow.col{display:block;}
+.qrow-head{display:flex;align-items:center;}
+.qrow-head .right{margin-left:auto;}
+.claimlist{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.claim{font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid var(--divider);}
+.claim.ok{background:#e6f4ea;color:var(--green);border-color:#cfe6d2;}
+.claim.flag{background:#fdf3e0;color:var(--amber);border-color:#f0e2c0;}
+.advisory{font-size:11px;color:#888;margin-top:9px;font-style:italic;}
+
 @media(max-width:820px){
   .cardrow,.split,.gate,.tiles{grid-template-columns:1fr;}
   .stream{flex-direction:column;}.starrow{width:auto;height:24px;transform:rotate(90deg);}
   .gv-util .gv-search{display:none;}
+  .qn-prov{text-align:left;max-width:100%;}
 }

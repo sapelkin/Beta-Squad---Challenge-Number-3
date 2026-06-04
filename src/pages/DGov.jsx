@@ -1,71 +1,68 @@
 import { useState } from 'react';
 import { vendors } from '../data/vendors.js';
+import Questionnaire from '../components/Questionnaire.jsx';
 
-const VERDICT = {
-  'pre-approve': { color: 'var(--green)', label: 'Pre-approve' },
-  'approve-with-conditions': { color: 'var(--amber)', label: 'Approve with conditions' },
-  decline: { color: 'var(--red)', label: 'Decline' },
-};
+function claimCheck(v) {
+  // What DGov verifies: that CLAIMED certifications are genuine and current. Not an approval.
+  const items = [];
+  if (v.verified.iso27001 === 'verified') items.push({ ok: true, t: 'ISO 27001 — certificate valid & current' });
+  if (v.verified.soc2 === 'verified') items.push({ ok: true, t: 'SOC 2 Type II — report on file' });
+  if (v.verified.irap === 'current') items.push({ ok: true, t: 'IRAP — assessment current' });
+  if (v.verified.irap === 'none') items.push({ ok: false, t: 'IRAP — not held' });
+  if (v.verified.mfa !== 'enforced') items.push({ ok: false, t: 'MFA — not enforced' });
+  if (v.verified.residency && v.verified.residency.startsWith('Offshore')) items.push({ ok: false, t: 'Hosting — offshore (flag for agencies)' });
+  return items;
+}
 
 export default function DGov() {
-  const queue = vendors.filter((v) => v.aiVerdict);
-  const [approved, setApproved] = useState({});
+  const [tab, setTab] = useState('queue');
 
   return (
     <div>
-      <h2 className="gv">Digital Government — assurance dashboard</h2>
-      <p className="lede">The overarching admin: standardise templates, watch the estate, and approve vendors with a human in the loop.</p>
+      <h2 className="gv">Digital Government — consultative assurance</h2>
+      <p className="lede">DGov does not approve vendors or mandate agency policy. It owns the baseline template and policy mappings, verifies that claimed certifications are genuine, and adds advisory input. Agencies keep the decision.</p>
 
       <div className="tiles">
-        <div className="tile">
-          <b>312</b>
-          <span>Certified vendors</span>
-        </div>
-        <div className="tile alert">
-          <b>7</b>
-          <span>Certificates expiring ≤30d</span>
-        </div>
-        <div className="tile alert">
-          <b>3</b>
-          <span>High-risk — access blocked</span>
-        </div>
-        <div className="tile">
-          <b>141</b>
-          <span>Agencies onboarded</span>
-        </div>
+        <div className="tile"><b>312</b><span>Vendors with verified records</span></div>
+        <div className="tile alert"><b>9</b><span>Claims awaiting verification</span></div>
+        <div className="tile"><b>16</b><span>Policy mappings in the baseline</span></div>
+        <div className="tile"><b>141</b><span>Agencies reusing the register</span></div>
       </div>
 
-      <h4 style={{ fontSize: 15, color: 'var(--ink)', margin: '0 0 10px' }}>Approval queue · human-in-the-loop</h4>
-      <div className="queue">
-        {queue.map((v) => {
-          const verdict = VERDICT[v.aiVerdict];
-          const isApproved = approved[v.id];
-          return (
-            <div className={'qrow' + (v.hero && !isApproved ? ' focus' : '')} key={v.id}>
-              <div>
-                <div className="who">{v.name}</div>
-                <div className="ai">
-                  AI suggestion: <b style={{ color: verdict.color }}>{verdict.label}</b> — {v.aiReason}{' '}
-                  <span style={{ color: '#999' }}>AI suggests, never approves.</span>
-                </div>
-              </div>
-              <div className="right">
-                {isApproved ? (
-                  <span className="miniseal" title="Certificate issued">✓</span>
-                ) : v.aiVerdict === 'pre-approve' ? (
-                  <button className="approve" onClick={() => setApproved((a) => ({ ...a, [v.id]: true }))}>
-                    Approve &amp; issue certificate
-                  </button>
-                ) : v.aiVerdict === 'approve-with-conditions' ? (
-                  <button className="approve" style={{ background: 'var(--amber)' }}>Review</button>
-                ) : (
-                  <button className="approve" style={{ background: 'var(--red)' }}>Decline</button>
-                )}
-              </div>
-            </div>
-          );
-        })}
+      <div className="seg">
+        <button className={tab === 'queue' ? 'on' : ''} onClick={() => setTab('queue')}>Verify &amp; record</button>
+        <button className={tab === 'baseline' ? 'on' : ''} onClick={() => setTab('baseline')}>Baseline template</button>
       </div>
+
+      {tab === 'queue' ? (
+        <div className="queue">
+          <p className="sd" style={{ marginBottom: 12 }}>DGov confirms a vendor's <b>claimed</b> certifications are genuine and records them. This is verification, not approval. Whether to engage a vendor stays with the agency.</p>
+          {vendors.map((v) => {
+            const items = claimCheck(v);
+            return (
+              <div className="qrow col" key={v.id}>
+                <div className="qrow-head">
+                  <div className="who">{v.name}<span className="td-sub" style={{ display: 'inline', marginLeft: 8 }}>{v.service}</span></div>
+                  <div className="right">
+                    <button className="approve">Confirm &amp; record</button>
+                  </div>
+                </div>
+                <div className="claimlist">
+                  {items.map((it, i) => (
+                    <span className={'claim ' + (it.ok ? 'ok' : 'flag')} key={i}>{it.ok ? '✓' : '⚠'} {it.t}</span>
+                  ))}
+                </div>
+                <div className="advisory">Advisory: surfaced to agencies as input. DGov adds policy context; the agency applies its own risk appetite.</div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div>
+          <p className="sd" style={{ marginBottom: 12 }}>The baseline DGov publishes from current policy. Agencies adopt it and tailor it; vendors answer it once. Every question maps to a live policy.</p>
+          <Questionnaire mode="baseline" />
+        </div>
+      )}
     </div>
   );
 }
