@@ -38,8 +38,8 @@ npm start            # production server with /api/ai/scaffold on http://localho
 ## The one real AI feature
 
 Legislation text → compliance form scaffold, behind a 4-mode adapter (`server/ai.mjs`,
-served at `POST /api/ai/scaffold` in dev and preview). Set `AI_PROVIDER` in `.env`
-(see `.env.example`). **No paid API key.**
+served at `POST /api/ai/scaffold` in dev, preview, and production). Set `AI_PROVIDER`
+in `.env` (see `.env.example`). **No paid API key.**
 
 | `AI_PROVIDER` | How | Use |
 |---|---|---|
@@ -49,6 +49,22 @@ served at `POST /api/ai/scaffold` in dev and preview). Set `AI_PROVIDER` in `.en
 | `lmstudio` | local model via LM Studio's OpenAI-compatible server on `localhost:1234` | local testing with `qwen/qwen3.5-9b` by default |
 
 Any provider error or timeout degrades gracefully to `mock`, so the demo never breaks.
+
+### Run with LM Studio
+
+1. Start LM Studio's local server from the Developer tab, or run `lms server start`.
+2. Load the Qwen 3.5 9B model in LM Studio.
+3. Create `.env` from `.env.example` and set:
+
+```bash
+AI_PROVIDER=lmstudio
+LMSTUDIO_URL=http://localhost:1234/v1
+LMSTUDIO_MODEL=qwen/qwen3.5-9b
+AI_TIMEOUT_MS=8000
+```
+
+Then run the app with `npm run dev`, or use `npm run build` followed by `npm start`
+for the production server.
 
 ## Demo spine (2 acts)
 
@@ -60,3 +76,16 @@ Any provider error or timeout degrades gracefully to `mock`, so the demo never b
 Clickable MVP. Smoke-and-mirrors where it doesn't change the story: no real form engine, no real
 auth, the MCP install is a simulated terminal, synthetic vendor data (`src/data/vendors.js`).
 Stack: React 19 + Vite + Tailwind. Design system: `DESIGN.md`.
+
+## What the LM Studio branch adds
+
+This branch adds a local LM Studio connector for the scaffold-generation feature, using
+LM Studio's OpenAI-compatible chat completions endpoint and the `qwen/qwen3.5-9b`
+model by default. It keeps the existing `mock`, `cli`, and `ollama` paths intact, adds
+request timeouts, and falls back to the deterministic mock scaffold if the local model
+is unavailable.
+
+It also extracts the AI route into a shared server handler (`server/api.mjs`), wires the
+same endpoint into Vite dev/preview, and adds a lightweight production server
+(`server/app.mjs`) so `npm start` can serve both the built React app and
+`POST /api/ai/scaffold`.
