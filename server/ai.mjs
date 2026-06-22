@@ -1,15 +1,18 @@
 // Harmony AI adapter — one feature (legislation -> compliance form scaffold), three providers.
-// No paid API key. Selected by AI_PROVIDER env: mock | cli | ollama.
-//   mock   - deterministic canned scaffold. Demo-safe, always works on stage.
-//   cli    - shells out to the local `claude` CLI (Vladimir's subscription, no API key).
-//   ollama - local model on http://localhost:11434 (on-prem, the data-sovereignty pitch).
+// No paid API key. Selected by AI_PROVIDER env: mock | cli | lmstudio.
+//   mock     - deterministic canned scaffold. Demo-safe, always works on stage.
+//   cli      - shells out to the local `claude` CLI (a Claude subscription, no API key).
+//   lmstudio - local model served by LM Studio's OpenAI-compatible API on
+//              http://localhost:1234 (on-prem, the data-sovereignty pitch).
 // Any failure degrades gracefully to mock so the demo never breaks.
 
 import { spawn } from 'node:child_process';
 
-const CLAUDE_BIN = process.env.CLAUDE_BIN || '/Users/vlad3v/.local/bin/claude';
-const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'qwen2.5:7b';
+// Read env at call time, not module load: vite.config.js injects .env vars into process.env
+// after this module is imported, so freezing these as top-level consts would miss .env overrides.
+const claudeBin = () => process.env.CLAUDE_BIN || '/Users/vlad3v/.local/bin/claude';
+const lmStudioUrl = () => process.env.LMSTUDIO_URL || 'http://localhost:1234';
+const lmStudioModel = () => process.env.LMSTUDIO_MODEL || 'llama-3.2-1b-instruct';
 
 const SYS = `You convert Western Australian Government cyber security policy text into a vendor compliance assessment form.
 Return ONLY a JSON array (no prose, no markdown fences) of 4-7 objects with exactly these keys:
@@ -54,7 +57,7 @@ export function mockFields(legislation = '') {
 function runCli(legislation) {
   return new Promise((resolve, reject) => {
     const prompt = `${SYS}\n\nPolicy text:\n"""${legislation}"""`;
-    const child = spawn(CLAUDE_BIN, ['-p', prompt], { timeout: 60000 });
+    const child = spawn(claudeBin(), ['-p', prompt], { timeout: 60000 });
     let out = '', err = '';
     child.stdout.on('data', (d) => (out += d));
     child.stderr.on('data', (d) => (err += d));
@@ -67,28 +70,60 @@ function runCli(legislation) {
   });
 }
 
-async function runOllama(legislation) {
+// LM Studio speaks the OpenAI Chat Completions API. We pin the output to a JSON schema via
+// response_format so even a small 1B model returns a clean {fields:[...]} object; extractJsonArray
+// still salvages the array if a runtime ignores the schema and wraps it in prose.
+async function runLmStudio(legislation) {
   const body = {
-    model: OLLAMA_MODEL,
-    prompt: `${SYS}\n\nPolicy text:\n"""${legislation}"""\n\nJSON:`,
+    model: lmStudioModel(),
+    messages: [
+      { role: 'system', content: SYS },
+      { role: 'user', content: `Policy text:\n"""${legislation}"""` },
+    ],
+    temperature: 0.2,
     stream: false,
-    options: { temperature: 0.2 },
+    response_format: {
+      type: 'json_schema',
+      json_schema: {
+        name: 'compliance_form',
+        strict: true,
+        schema: {
+          type: 'object',
+          properties: {
+            fields: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  label: { type: 'string' },
+                  type: { type: 'string', enum: ['checkbox', 'text', 'select', 'upload', 'yesno'] },
+                  required: { type: 'boolean' },
+                },
+                required: ['label', 'type', 'required'],
+              },
+            },
+          },
+          required: ['fields'],
+        },
+      },
+    },
   };
-  const r = await fetch(`${OLLAMA_URL}/api/generate`, {
+  const r = await fetch(`${lmStudioUrl()}/v1/chat/completions`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(body),
   });
-  if (!r.ok) throw new Error(`ollama HTTP ${r.status}`);
+  if (!r.ok) throw new Error(`lmstudio HTTP ${r.status}`);
   const data = await r.json();
-  const fields = extractJsonArray(data.response || '');
-  if (!fields) throw new Error('ollama returned no parseable JSON');
+  const content = data?.choices?.[0]?.message?.content || '';
+  const fields = extractJsonArray(content);
+  if (!fields) throw new Error('lmstudio returned no parseable JSON');
   return fields;
 }
 
 export async function generateScaffold(legislation) {
   const provider = (process.env.AI_PROVIDER || 'mock').toLowerCase();
   if (provider === 'cli') return { provider: 'cli', fields: await runCli(legislation) };
-  if (provider === 'ollama') return { provider: `ollama:${OLLAMA_MODEL}`, fields: await runOllama(legislation) };
+  if (provider === 'lmstudio') return { provider: `lmstudio:${lmStudioModel()}`, fields: await runLmStudio(legislation) };
   return { provider: 'mock', fields: mockFields(legislation) };
 }
