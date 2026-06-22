@@ -61,7 +61,7 @@ export default function Agency() {
             {provider && (
               <div className="aibadge">
                 ✦ provider: {provider}
-                {provider.startsWith('lmstudio') ? ' · on-prem, data stays in WA' : provider.startsWith('cli') ? ' · via your subscription' : ''}
+                {provider.startsWith('ollama') ? ' · on-prem, data stays in WA' : provider.startsWith('cli') ? ' · via your subscription' : ''}
               </div>
             )}
           </div>

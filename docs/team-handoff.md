@@ -7,7 +7,7 @@
 - Vendor MCP flow: gate selection, simulated terminal, tailored checklist, live certificate.
 - Agency flow: policy text to scaffold, green-pool search, one-click assessment reuse.
 - DGov flow: assurance dashboard, AI recommendation, human-in-the-loop approval.
-- AI sidecar at `POST /api/ai/scaffold` with `mock`, `cli`, and `lmstudio` providers. Any provider error degrades to `mock`, so it cannot fail on stage.
+- AI sidecar at `POST /api/ai/scaffold` with `mock`, `cli`, and `ollama` providers. The demo defaults to `mock` so it cannot fail on stage.
 
 ## Run
 
@@ -35,7 +35,7 @@ PATH=/Users/vlad3v/.cache/codex-runtimes/codex-primary-runtime/dependencies/node
 
 - Do not claim the MCP integration is live. It is a simulated terminal for the prototype.
 - Do not claim the policy sources are exhaustive legal advice.
-- Do not run `cli` or `lmstudio` provider during the pitch unless already warmed up. Fall back to `mock`.
+- Do not run `cli` or `ollama` provider during the pitch unless already warmed up. Use `mock`.
 - Do not lead with dashboards. Lead with the two-act story.
 
 ## Strongest Build Angle
