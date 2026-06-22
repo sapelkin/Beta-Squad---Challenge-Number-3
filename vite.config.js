@@ -1,4 +1,4 @@
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { generateScaffold, mockFields } from './server/ai.mjs';
@@ -37,16 +37,7 @@ function harmonyAiSidecar() {
   };
 }
 
-export default defineConfig(({ mode }) => {
-  // Vite does not put .env vars into process.env (only VITE_-prefixed vars reach the client).
-  // The AI sidecar runs in Node and reads process.env, so load .env here and inject the keys it
-  // needs. An already-set shell/inline env var still wins over the .env file.
-  const env = loadEnv(mode, process.cwd(), '');
-  for (const k of ['AI_PROVIDER', 'CLAUDE_BIN', 'LMSTUDIO_URL', 'LMSTUDIO_MODEL']) {
-    if (env[k] !== undefined && process.env[k] === undefined) process.env[k] = env[k];
-  }
-  return {
-    plugins: [react(), tailwindcss(), harmonyAiSidecar()],
-    server: { port: 5174, host: true },
-  };
+export default defineConfig({
+  plugins: [react(), tailwindcss(), harmonyAiSidecar()],
+  server: { port: 5174, host: true },
 });
